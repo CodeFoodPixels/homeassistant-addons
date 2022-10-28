@@ -18,13 +18,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         
-      - name: Generate Folder List
+      - name: Generate Filter List
         id: set-folders
         shell: bash
         run: |
-          folders=$(tree -J -d -L 1 | jq -c '.[0].contents | map(.name)')
-          echo $folders
-          echo "::set-output name=folders::$folders"
+          filters=$(tree -J -d -L 1 | jq -c '.[0].contents | map(.name + ": " + .name + "/**")')
+          echo $filters
+          echo "filters=$filters" >> $GITHUB_OUTPUT
 
 #       - name: Detect changed files
 #         uses: dorny/paths-filter@v2
