@@ -31,4 +31,4 @@ jobs:
         id: filter
         with:
           filters: |
-            ${{ join(steps.set-folders.outputs.filters, "\n") }}
+            ${{ join(steps.set-folders.outputs.filters, '\n') }}
