@@ -1,0 +1,32 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "*!(.*)/**"
+      
+jobs:
+  check-addon-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changedAddons: ${{ steps.filter.outputs.changes }}
+    steps:
+      - run: apt update && apt install tree jq -y
+        shell: bash
+      
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Generate Folder List
+        id: set-folders
+        shell: bash
+        run: |
+          folders=$(tree -J -d -L 1 | jq -c '.[0].contents | map(.name)')
+          echo $folders
+          echo "::set-output name=folders::$folders"
+
+#       - name: Detect changed files
+#         uses: dorny/paths-filter@v2
+#         id: filter
+#         with:
+#           filters: 
