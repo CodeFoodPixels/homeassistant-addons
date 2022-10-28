@@ -30,4 +30,5 @@ jobs:
         uses: dorny/paths-filter@v2
         id: filter
         with:
-          filters: "${{ fromJSON(steps.set-folders.outputs.filters) }}"
+          filters: |
+            ${{ fromJSON(steps.set-folders.outputs.filters) }}
