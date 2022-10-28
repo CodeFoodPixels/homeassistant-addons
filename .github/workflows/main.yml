@@ -22,7 +22,7 @@ jobs:
         id: set-folders
         shell: bash
         run: |
-          filters=$(tree -J -d -L 1 | jq -c '.[0].contents | map({(.name|tostring): (.name|tostring + "/**")}) | add')
+          filters=$(tree -J -d -L 1 | jq -c '.[0].contents | map((.name|tostring)+ ": " + (.name|tostring) + "/**")')
           echo $filters
           echo "filters=$filters" >> $GITHUB_OUTPUT
 
@@ -31,4 +31,4 @@ jobs:
         id: filter
         with:
           filters: |
-            ${{ fromJSON(steps.set-folders.outputs.filters) }}
+            ${{ join(steps.set-folders.outputs.filters, "\n") }}
