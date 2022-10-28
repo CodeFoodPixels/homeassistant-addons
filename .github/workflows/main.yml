@@ -12,7 +12,7 @@ jobs:
     outputs:
       changedAddons: ${{ steps.filter.outputs.changes }}
     steps:
-      - run: apt update && apt install tree jq -y
+      - run: sudo apt update && apt install tree jq -y
         shell: bash
       
       - name: Checkout
