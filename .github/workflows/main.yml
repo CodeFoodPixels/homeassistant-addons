@@ -29,3 +29,44 @@ jobs:
         with:
           filters: |
             ${{ join(fromJSON(steps.set-folders.outputs.filters), '\n') }}
+
+  build:
+    if: ${{ needs.check-addon-changes.outputs.changedAddons != '[]' }}
+    needs: check-addon-changes
+    runs-on: ubuntu-latest
+    environment: CR_PAT
+    name: Build ${{ matrix.addon }} add-on
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.check-addon-changes.outputs.changedAddons) }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Get information
+        id: info
+        uses: home-assistant/actions/helpers/info@master
+        with:
+          path: "./${{ matrix.addon }}"
+
+      - name: Login to GitHub Container Registry
+        if: env.BUILD_ARGS != '--test'
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build ${{ matrix.addon }} add-on
+        uses: home-assistant/builder@master
+        # env:
+          # CAS_API_KEY: ${{ secrets.CAS_API_KEY }}
+        with:
+          args: |
+            ${{ env.BUILD_ARGS }} \
+            --${{ join(steps.info.outputs.architectures, ' --') }} \
+            --target /data/${{ matrix.addon }} \
+            --image "${{ steps.check.outputs.image }}" \
+            --docker-hub "ghcr.io/${{ github.repository_owner }}" \
+            --addon
