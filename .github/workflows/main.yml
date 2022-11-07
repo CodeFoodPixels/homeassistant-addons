@@ -65,7 +65,7 @@ jobs:
         with:
           args: |
             ${{ env.BUILD_ARGS }} \
-            --${{ join(steps.info.outputs.architectures, ' --') }} \
+            --${{ join(fromJSON(steps.info.outputs.architectures), ' --') }} \
             --target /data/${{ matrix.addon }} \
             --image "${{ steps.check.outputs.image }}" \
             --docker-hub "ghcr.io/${{ github.repository_owner }}" \
