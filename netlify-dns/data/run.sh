@@ -1,16 +1,11 @@
 #!/usr/bin/with-contenv bashio
 
-CERT_DIR=/data/letsencrypt
-WORK_DIR=/data/workdir
 NETLIFY_API="https://api.netlify.com/api/v1"
-
-LE_UPDATE=0
 
 TOKEN=$(bashio::config 'token')
 DOMAIN=$(bashio::config 'domain')
 SUBDOMAIN=$(bashio::config 'subdomain')
 WAIT_TIME=$(bashio::config 'seconds')
-ALGO=$(bashio::config 'lets_encrypt.algo')
 IPV4_PATTERN='^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
 HOSTNAME="$SUBDOMAIN.$DOMAIN"
 
@@ -105,26 +100,6 @@ function updateNetlify() {
   fi
 }
 
-function renewLetsEncrypt() {
-  dehydrated --cron --algo "${ALGO}" --hook ./hooks.sh --challenge dns-01 --domain "${HOSTNAME}" --out "${CERT_DIR}" --config "${WORK_DIR}/config" || true
-  LE_UPDATE="$(date +%s)"
-}
-
-if bashio::config.true 'lets_encrypt.accept_terms'; then
-  mkdir -p "${CERT_DIR}"
-  mkdir -p "${WORK_DIR}"
-
-  if [ -e "${WORK_DIR}/lock" ]; then
-    rm -f "${WORK_DIR}/lock"
-    bashio::log.warning "Reset dehydrated lock file"
-  fi
-
-  if [ ! -d "${CERT_DIR}/live" ]; then
-    touch "${WORK_DIR}/config"
-    dehydrated --register --accept-terms --config "${WORK_DIR}/config"
-  fi
-fi
-
 while true; do
   if bashio::config.has_value "ip"; then
     EXTERNAL_IP=$(bashio::config 'ip')
@@ -139,9 +114,6 @@ while true; do
   updateNetlify
 
   now="$(date +%s)"
-  if bashio::config.true 'lets_encrypt.accept_terms' && [ $((now - LE_UPDATE)) -ge 43200 ]; then
-    renewLetsEncrypt
-  fi
 
   sleep "${WAIT_TIME}"
 done
