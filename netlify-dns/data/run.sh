@@ -44,6 +44,8 @@ function updateNetlify() {
     local ZONE_ID=$CACHED_ZONE_ID
   fi
 
+	bashio::log.info "Got DNS zone ID of $ZONE_ID"
+
   if [ -z $CACHED_RECORD_IP ]; then
     local DNS_RECORDS_RESPONSE=$(curl -s -w "%{http_code}" "$NETLIFY_API/dns_zones/$ZONE_ID/dns_records?access_token=$TOKEN" --header "Content-Type:application/json")
     local DNS_RECORDS_RESPONSE_CODE=${DNS_RECORDS_RESPONSE: -3}
@@ -64,6 +66,8 @@ function updateNetlify() {
   else
     local RECORD_VALUE=$CACHED_RECORD_IP
   fi
+
+	bashio::log.info "Got current DNS record value of $RECORD_VALUE"
 
   if [[ "$RECORD_VALUE" != "$EXTERNAL_IP" ]]; then
 
@@ -95,12 +99,15 @@ function updateNetlify() {
     if [[ $CREATE_RESPONSE_CODE != 201 ]]; then
       bashio::log.info "Create response code: ${CREATE_RESPONSE_CODE}"
       bashio::log.info "Create response body: ${CREATE_RESPONSE_CONTENT}"
-      bashio::exit.nok "There was a problem creating the new entry for $HOSTNAME on Netlift"
+      bashio::exit.nok "There was a problem creating the new entry for $HOSTNAME on Netlify"
     fi
+
+		bashio::log.info "Updated $HOSTNAME to $EXTERNAL_IP"
   fi
 }
 
 while true; do
+	bashio::log.info "Running IP update"
   if bashio::config.has_value "ip"; then
     EXTERNAL_IP=$(bashio::config 'ip')
     if [[ ! $EXTERNAL_IP =~ $IPV4_PATTERN ]]; then
@@ -112,8 +119,6 @@ while true; do
   fi
 
   updateNetlify
-
-  now="$(date +%s)"
 
   sleep "${WAIT_TIME}"
 done
